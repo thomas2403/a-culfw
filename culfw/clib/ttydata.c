@@ -15,7 +15,11 @@
 void (*input_handle_func)(uint8_t channel);
 
 
+#ifdef TTY_BUFSIZE_TX
+rbtx_t TTY_Tx_Buffer;
+#else
 rb_t TTY_Tx_Buffer;
+#endif
 rb_t TTY_Rx_Buffer;
 static char cmdbuf[TTY_BUFSIZE+1];
 
@@ -67,7 +71,7 @@ analyze_ttydata(uint8_t channel)
   uint8_t ucCommand;
   uint8_t odc = display_channel;
   display_channel = channel;
-    
+
   while(TTY_Rx_Buffer.nbytes) {
 
     ucCommand = rb_get(&TTY_Rx_Buffer);

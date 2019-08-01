@@ -104,9 +104,15 @@ display_char(char data)
 
 #ifdef HAS_USB
   if(USB_IsConnected && (display_channel & DISPLAY_USB)) {
-    if(TTY_Tx_Buffer.nbytes >= TTY_BUFSIZE)
+#ifdef TTY_BUFSIZE_TX
+	  if(TTY_Tx_Buffer.nbytes >= TTY_BUFSIZE_TX)
       CDC_Task();
-    rb_put(&TTY_Tx_Buffer, data);
+    rbtx_put(&TTY_Tx_Buffer, data);
+#else
+	if(TTY_Tx_Buffer.nbytes >= TTY_BUFSIZE)
+		CDC_Task();
+	rb_put(&TTY_Tx_Buffer, data);
+	#endif
     if(data == '\n')
       CDC_Task();
     buffer_used();
@@ -119,9 +125,15 @@ display_char(char data)
 #else
   if(display_channel & DISPLAY_USB) {
 #endif
-    if((TTY_Tx_Buffer.nbytes  < TTY_BUFSIZE-2) ||
+#ifdef TTY_BUFSIZE_TX
+	  if((TTY_Tx_Buffer.nbytes  < TTY_BUFSIZE_TX-2) ||
+		  (TTY_Tx_Buffer.nbytes  < TTY_BUFSIZE_TX && (data == '\r' || data == '\n')))
+		  rbtx_put(&TTY_Tx_Buffer, data);
+#else
+	  if((TTY_Tx_Buffer.nbytes  < TTY_BUFSIZE-2) ||
        (TTY_Tx_Buffer.nbytes  < TTY_BUFSIZE && (data == '\r' || data == '\n')))
     rb_put(&TTY_Tx_Buffer, data);
+#endif
   }
 #endif
 
@@ -132,7 +144,7 @@ display_char(char data)
     rb_put(&RFR_Buffer, data == '\r' ? ';' : data);
     if(data == '\r')
       FHT_compress(&RFR_Buffer);
-    rf_router_sendtime = 3; 
+    rf_router_sendtime = 3;
     rf_nr_send_checks = 2;
   }
 #endif
@@ -149,11 +161,11 @@ display_char(char data)
       off = 0;
       if(cmdmode) {
         callfn((char *)buf);
-      } else 
+      } else
         lcd_putline(0, (char*)buf);
       cmdmode = 0;
     } else {
-      // 
+      //
       if(off < TITLE_LINECHARS)   // or cmd: up to 12Byte: F12346448616c6c6f
         buf[off++] = data;
 

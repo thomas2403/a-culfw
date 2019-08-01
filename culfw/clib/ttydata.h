@@ -16,7 +16,11 @@ uint8_t callfn(char *buf);
 void (*input_handle_func)(uint8_t channel);
 void (*output_flush_func)(void);
 
+#ifdef TTY_BUFSIZE_TX
+extern rbtx_t TTY_Tx_Buffer;
+#else
 extern rb_t TTY_Tx_Buffer;
+#endif
 extern rb_t TTY_Rx_Buffer;
 
 #endif

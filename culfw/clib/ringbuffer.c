@@ -21,25 +21,48 @@ rb_reset(rb_t *rb)
   rb->getoff = rb->putoff = rb->nbytes = 0;
 }
 
+#ifdef TTY_BUFSIZE_TX
 void
-rb_put(rb_t *rb, uint8_t data)
+rbtx_reset(rbtx_t *rb)
+{
+	rb->getoff = rb->putoff = rb->nbytes = 0;
+}
+#endif
+
+void
+rb_put_int(rb_t *rb, uint8_t data, uint16_t size)
 {
   uint8_t sreg;
   sreg = SREG;
   cli();
-  if(rb->nbytes >= TTY_BUFSIZE) {
+  if(rb->nbytes >= size) {
 	  restoreIRQ(sreg);
     return;
   }
   rb->nbytes++;
   rb->buf[rb->putoff++] = data;
-  if(rb->putoff == TTY_BUFSIZE)
+  if(rb->putoff == size)
     rb->putoff = 0;
   restoreIRQ(sreg);
 }
 
+void
+rb_put(rb_t *rb, uint8_t data)
+{
+	rb_put_int(rb, data, TTY_BUFSIZE);
+}
+
+#ifdef TTY_BUFSIZE_TX
+void
+rbtx_put(rbtx_t *rb, uint8_t data)
+{
+	rb_put_int((rb_t *)rb, data, TTY_BUFSIZE_TX);
+}
+#endif
+
+
 uint8_t
-rb_get(rb_t *rb)
+rb_get_int(rb_t *rb, uint16_t size)
 {
   uint8_t sreg;
   uint8_t ret;
@@ -51,11 +74,26 @@ rb_get(rb_t *rb)
   }
   rb->nbytes--;
   ret = rb->buf[rb->getoff++];
-  if(rb->getoff == TTY_BUFSIZE)
+  if(rb->getoff == size)
     rb->getoff = 0;
   restoreIRQ(sreg);
   return ret;
 }
+
+uint8_t
+rb_get(rb_t *rb)
+{
+	return rb_get_int(rb, TTY_BUFSIZE);
+}
+
+#ifdef TTY_BUFSIZE_TX
+uint8_t
+rbtx_get(rbtx_t *rb)
+{
+	return rb_get_int((rb_t *)rb, TTY_BUFSIZE_TX);
+}
+#endif
+
 
 #ifdef TESTING
 void

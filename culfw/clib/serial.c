@@ -22,7 +22,11 @@ void UART_Tx_Callback(void) {
 
   if(!USB_IsConnected) {
     if (TTY_Tx_Buffer.nbytes) {
+#ifdef TTY_BUFSIZE_TX
+      TXdata = rbtx_get(&TTY_Tx_Buffer);
+#else
       TXdata = rb_get(&TTY_Tx_Buffer);
+#endif
       HAL_UART_Write(UART_NUM, &TXdata, 1);
     }
   }
@@ -35,19 +39,23 @@ void UART_Rx_Callback(uint8_t data) {
 }
 
 #else
-// TX complete (data buffer empty) 
+// TX complete (data buffer empty)
 ISR(USART_UDRE_vect)
 {
      if (TTY_Tx_Buffer.nbytes) {
-	  
-	  UDR0 = rb_get(&TTY_Tx_Buffer);
-	  
+
+ #ifdef TTY_BUFSIZE_TX
+		 UDR0 = rbtx_get(&TTY_Tx_Buffer);
+#else
+		 UDR0 = rb_get(&TTY_Tx_Buffer);
+#endif
+
      } else {
-	  
+
 	  UCSR0B &= ~_BV(UDRIE0);
-	  
+
      }
-     
+
 }
 
 // RX complete
@@ -56,17 +64,17 @@ ISR(USART_RX_vect)
 
      //LED_TOGGLE();
 
-     /* read UART status register and UART data register */ 
+     /* read UART status register and UART data register */
      uint8_t data = UDR0;
      uint8_t usr  = UCSR0A;
-     
+
      if ((usr & (_BV(FE0)|_BV(DOR0))) == 0)
 	  rb_put(&TTY_Rx_Buffer, data);
-     
+
 }
 #endif
 
-void uart_init(unsigned int baudrate) 
+void uart_init(unsigned int baudrate)
 {
 #ifdef USE_HAL
     HAL_UART_init(UART_NUM);
@@ -74,30 +82,30 @@ void uart_init(unsigned int baudrate)
 
 #else
      /* Set baud rate */
-     if ( baudrate & 0x8000 ) 
+     if ( baudrate & 0x8000 )
      {
-	  UCSR0A = (1<<U2X0);  //Enable 2x speed 
+	  UCSR0A = (1<<U2X0);  //Enable 2x speed
 	  baudrate &= ~0x8000;
      }
 
      UBRR0 = baudrate;
-     
+
      /* Enable USART receiver and transmitter and receive complete interrupt */
      UCSR0B = _BV(RXCIE0)|(1<<RXEN0)|(1<<TXEN0);
-    
-     /* Set frame format: asynchronous, 8data, no parity, 1stop bit */   
+
+     /* Set frame format: asynchronous, 8data, no parity, 1stop bit */
      UCSR0C = (1<<UCSZ00)|(1<<UCSZ01);
 
 #endif
 }
 
-void uart_task(void) 
+void uart_task(void)
 {
      input_handle_func(DISPLAY_USB);
      uart_flush();
 }
 
-void uart_flush(void) 
+void uart_flush(void)
 {
 #ifdef USE_HAL
     if (TTY_Tx_Buffer.nbytes && HAL_UART_TX_is_idle(UART_NUM) ) {
@@ -107,5 +115,5 @@ void uart_flush(void)
      if (!bit_is_set(UCSR0B, UDRIE0) && TTY_Tx_Buffer.nbytes)
 	  UCSR0B |= _BV(UDRIE0);
 #endif
-     
+
 }
