@@ -78,7 +78,7 @@
 
 #define TTY_BUFSIZE             64
 
-#define TTY_BUFSIZE_TX          500
+#define TTY_BUFSIZE_TX          514
 
 #define RCV_BUCKETS            0      //                 RAM: 25b * bucket
 //#define FULL_CC1100_PA                // PROGMEM:  108b
