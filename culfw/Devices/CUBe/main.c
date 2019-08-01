@@ -452,7 +452,11 @@ int main(void)
   eeprom_init();
 
   rb_reset(&TTY_Rx_Buffer);
+#ifdef TTY_BUFSIZE_TX
+  rbtx_reset(&TTY_Tx_Buffer);
+#else
   rb_reset(&TTY_Tx_Buffer);
+#endif
 
   input_handle_func = analyze_ttydata;
 
@@ -598,8 +602,13 @@ int main(void)
         while (1);
         break;
       default:
-        rb_put(&TTY_Tx_Buffer, x);
-      }
+#ifdef TTY_BUFSIZE_TX
+
+        rbtx_reset(&TTY_Tx_Buffer, x);
+#else
+		rb_put(&TTY_Tx_Buffer, x);
+#endif
+	  }
     }
 #endif
 

@@ -90,7 +90,7 @@ CDC_Task(void)
     while (Endpoint_BytesInEndpoint()) {          // Discard data on buffer full
       rb_put(&TTY_Rx_Buffer, Endpoint_Read_Byte());
     }
-    Endpoint_ClearOUT(); 
+    Endpoint_ClearOUT();
 
     inCDC_TASK = 1;
     output_flush_func = CDC_Task;
@@ -105,9 +105,13 @@ CDC_Task(void)
     cli();
     while(TTY_Tx_Buffer.nbytes &&
           (Endpoint_BytesInEndpoint() < USB_BUFSIZE))
-      Endpoint_Write_Byte(rb_get(&TTY_Tx_Buffer));
+#ifdef TTY_BUFSIZE_TX
+		Endpoint_Write_Byte(rbtx_get(&TTY_Tx_Buffer));
+#else
+		Endpoint_Write_Byte(rb_get(&TTY_Tx_Buffer));
+#endif
     sei();
-    
+
     bool IsFull = (Endpoint_BytesInEndpoint() == USB_BUFSIZE);
     Endpoint_ClearIN();                  // Send the data
     if(IsFull) {

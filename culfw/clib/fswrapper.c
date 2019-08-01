@@ -25,11 +25,11 @@ static uint8_t isMenu;                  // Menu hack
 #endif
 
 //////////////////////////////////
-// Input: Filename 
+// Input: Filename
 // Return on error: X+errno(hex)+newline
 // Return if ok: length (32bit, hex),newline+data
 // If filename is . then return all filenames separated with space + newline
-void        
+void
 read_file(char *in)
 {
   uint8_t ole = log_enabled;
@@ -70,16 +70,24 @@ read_file(char *in)
 
       while(offset < filesize) {
 
-        TTY_Tx_Buffer.nbytes = ((filesize-offset) > TTY_BUFSIZE ?
+#ifdef TTY_BUFSIZE_TX
+		  TTY_Tx_Buffer.nbytes = ((filesize-offset) > TTY_BUFSIZE_TX ?
+                         TTY_BUFSIZE_TX : filesize-offset);
+#else
+		  TTY_Tx_Buffer.nbytes = ((filesize-offset) > TTY_BUFSIZE ?
                         TTY_BUFSIZE : filesize-offset);
+#endif
         TTY_Tx_Buffer.getoff = 0;
         fs_read( &fs, inode, TTY_Tx_Buffer.buf, offset, TTY_Tx_Buffer.nbytes);
         offset += TTY_Tx_Buffer.nbytes;
         output_flush_func();
         wdt_reset();
       }
+#ifdef TTY_BUFSIZE_TX
+      rbtx_reset(&TTY_Tx_Buffer);
+#else
       rb_reset(&TTY_Tx_Buffer);
-
+#endif
       set_txrestore();
     }
   }
@@ -183,7 +191,7 @@ write_filedata(uint8_t channel)
 }
 
 #if 0 // read/write speed test
-void        
+void
 test_file(char *in)
 {
   fs_status_t ret = 0;
@@ -191,7 +199,7 @@ test_file(char *in)
   char *fname = "TESTFILE";
   char buf[32];
 
-  wdt_disable(); 
+  wdt_disable();
   uint8_t *p = (uint8_t *)&ticks;
   DH2(p[1]); DH2(p[0]); DNL();
   if(in[1] == 'w') {
@@ -223,6 +231,6 @@ test_file(char *in)
 DONE:
   DH2(ret);
   DH2(p[1]); DH2(p[0]); DNL();
-  wdt_enable(WDTO_2S); 
+  wdt_enable(WDTO_2S);
 }
 #endif

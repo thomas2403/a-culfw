@@ -38,10 +38,10 @@ HANDLES_EVENT(USB_UnhandledControlPacket)
         Endpoint_ClearSetupReceived();
 
         Endpoint_Write_Control_Stream_LE(&LineCoding, sizeof(LineCoding));
- 
+
         Endpoint_ClearSetupOUT();
       }
- 
+
       break;
     case SET_LINE_CODING:
       if(bmRequestType == (REQDIR_HOSTTODEVICE|REQTYPE_CLASS|REQREC_INTERFACE)){
@@ -51,11 +51,11 @@ HANDLES_EVENT(USB_UnhandledControlPacket)
 
         Endpoint_ClearSetupIN();
       }
- 
+
       break;
     case SET_CONTROL_LINE_STATE:
       if(bmRequestType == (REQDIR_HOSTTODEVICE|REQTYPE_CLASS|REQREC_INTERFACE)){
- 
+
         Endpoint_ClearSetupIN();
       }
 
@@ -89,7 +89,12 @@ CDC_Task(void)
 
 		while(TTY_Tx_Buffer.nbytes && i<DATABUFFERSIZEOUT) {
 
-			 usbBufferOut[i++]=rb_get(&TTY_Tx_Buffer);
+#ifdef TTY_BUFSIZE_TX
+			usbBufferOut[i++]=rbtx_get(&TTY_Tx_Buffer);
+#else
+			usbBufferOut[i++]=rb_get(&TTY_Tx_Buffer);
+#endif
+
 		}
 
 		while (CDCDSerialDriver_Write(usbBufferOut,i, 0, 0) != USBD_STATUS_SUCCESS);
@@ -105,7 +110,7 @@ CDC_Task(void)
     while (Endpoint_BytesInEndpoint()) {          // Discard data on buffer full
       rb_put(&TTY_Rx_Buffer, Endpoint_Read_Byte());
     }
-    Endpoint_ClearCurrentBank(); 
+    Endpoint_ClearCurrentBank();
     inCDC_TASK = 1;
     output_flush_func = CDC_Task;
     input_handle_func(DISPLAY_USB);
@@ -119,9 +124,14 @@ CDC_Task(void)
     cli();
     while(TTY_Tx_Buffer.nbytes &&
           (Endpoint_BytesInEndpoint() < USB_BUFSIZE))
-      Endpoint_Write_Byte(rb_get(&TTY_Tx_Buffer));
+
+#ifdef TTY_BUFSIZE_TX
+		Endpoint_Write_Byte(rbtx_get(&TTY_Tx_Buffer));
+#else
+		Endpoint_Write_Byte(rb_get(&TTY_Tx_Buffer));
+#endif
     sei();
-    
+
     Endpoint_ClearCurrentBank();                  // Send the data
 
   }
