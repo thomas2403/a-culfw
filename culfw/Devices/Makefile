@@ -15,8 +15,8 @@ all:
 	make -C CUL-ProMicro all
 	make -C CUN clean
 	make -C CUN all
-	make -C CUNO clean 
-	make -C CUNO all 
+	make -C CUNO clean
+	make -C CUNO all
 	make -C CUNO2 clean
 	make -C CUNO2 all
 	make -C CUR clean
@@ -28,7 +28,7 @@ all:
 	make -C PIGATOR clean
 	make -C PIGATOR all
 	make -C CPM-Gardenabodenfeuchtesensor/Release clean
-	make -C CPM-Gardenabodenfeuchtesensor/Release all 
+	make -C CPM-Gardenabodenfeuchtesensor/Release all
 	make -C miniCUL clean
 	make -C miniCUL all
 	make -C nanoCUL clean
@@ -63,6 +63,8 @@ all:
 	make -C MapleCUN all
 	make -C I2CCUL clean
 	make -C I2CCUL all
+	make -C brickRadino clean
+	make -C brickRadino all
 	find . -name \*.eep | xargs rm
 	find . -name \*.elf | xargs rm
 	find . -name \*.lss | xargs rm
@@ -80,7 +82,7 @@ clean:
 	make -C CUL-Arduino clean
 	make -C CUL-ProMicro clean
 	make -C CUN clean
-	make -C CUNO clean 
+	make -C CUNO clean
 	make -C CUNO2 clean
 	make -C CUR clean
 	make -C COC clean
@@ -104,4 +106,5 @@ clean:
 	make -C CUBe/bootloader clean
 	make -C MapleCUN clean
 	make -C I2CCUL clean
-	
+	make -C brickRadino clean
+
