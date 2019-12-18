@@ -5,7 +5,7 @@
 # To init call ./flash.sh
 #
 # The file for flashing the device
-FLASH_FILE=nanoCUL433.hex
+FLASH_FILE=brickRadino868.hex
 
 # The MCU
 MCU=atmega32u4
@@ -14,7 +14,7 @@ MCU=atmega32u4
 DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
 # Default Port
-PORT=/dev/ttyUSB0
+PORT=/dev/ttyACM0
 # Programming baudrate
 BAUD=57600
 # The programmer
@@ -63,11 +63,8 @@ echo "The device will now be flashed"
 read -p "Continue (y/n)?" flashdevice
 
 if [ "$flashdevice" = "y" -o "$flashdevice" = "Y" -o "$flashdevice" = "j" -o "$flashdevice" = "J" ] ; then
-  echo "Call now ${PROGRAMMER} -p ${MCU} -c arduino -P ${port} -b ${BAUD} -D -Uflash:w:./${FLASH_FILE}:i"
-  ${PROGRAMMER} -p ${MCU} -c arduino -P ${port} -b ${BAUD} -D -Uflash:w:./${FLASH_FILE}:i
+  echo "Call now ${PROGRAMMER} -v -p ${MCU} -c avr109 -P ${port} -b ${BAUD} -D -V -Uflash:w:./${FLASH_FILE}:i"
+  ${PROGRAMMER} -v -p ${MCU} -c avr109 -P ${port} -b ${BAUD} -D -V -Uflash:w:./${FLASH_FILE}:i
 else
   echo "Abort flash"
 fi
-
-
-
